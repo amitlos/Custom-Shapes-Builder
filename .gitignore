@@ -1,0 +1,6 @@
+*.dll
+*vcxproj*
+*.props
+x64/
+.vs/
+SFMLTest.sln
