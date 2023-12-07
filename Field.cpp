@@ -1,49 +1,50 @@
 #include "Field.h"
-
-
-char Field::Point::defName = ('Z' - 'A') / 2;
+#define TSpace Lexer::Token            // namespace of the class Token 
 
 void Field::parse()
 {
 	// Erorr handling: The idea is: whenever we face the lexical or syntax error, we are getting straight to the getToken ';'(end of the current instruction)
 	// to escape it, writing down the error message.
 	// After that, we work as usual. 
-	// If there isn`t an ending symbol, it stops on '\0' terminal, we see this and tell user, 
-	// that there is a syntax error - there is no end of the instruction. 
+	// If there isn`t an ending symbol, it stops on \0' terminal, we see this and tell user, 
+	// that there is a syntax error - there is no end of the instruction. '
 	bool notEnded = true;
 	while (notEnded)
 	{
-		switch (_lexer->getToken())
+		Lexer::Token t = _lexer->getToken();
+		switch (t)
 		{
-		case Lexer::Token::DRAW_POINTS:
+		case TSpace::DRAW_POINTS:
 			if(!parseDrPoints())
 				getNextInstr();
 			break;
-		case Lexer::Token::DRAW_LINES:
+		case TSpace::DRAW_LINES:
 			if (!parseDrLines())
 				getNextInstr();
 			break;
-		case Lexer::Token::CONNECT:
+		case TSpace::CONNECT:
 			if (!parseConnect())
 				getNextInstr();
 			break;
-		case Lexer::Token::MARK_POINTS:
+		case TSpace::MARK_POINTS:
 			if (!parseMPoints())
 				getNextInstr();
 			break;
-		case Lexer::Token::END:
+		case TSpace::END:
 			notEnded = false;
 			break;
-		case Lexer::Token::UNEXPECTED:
+		case TSpace::UNEXPECTED:
 			*_error_list += "Syntax error. Command is not found.\n";
+			_error_token = new Lexer::Token(t);
 			getNextInstr();
 			break;
-		case Lexer::Token::NULL_TERM:
+		case TSpace::NULL_TERM:
 			*_error_list += "Syntax Error. End of the instructions wasn`t found. Please, check the rules and try again.\n";
 			notEnded = false;
 			break;
 		default:
 			*_error_list += "Syntax Error. Failed to read an instruction. Please, check the rules and try again.\n";
+			_error_token = new Lexer::Token(t);
 			getNextInstr();
 		}
 	}
@@ -51,7 +52,8 @@ void Field::parse()
 
 bool Field::parseDrPoints()
 {
-	if (_lexer->peek() != Lexer::Token::SEMICOLON)
+	Lexer::Token t;
+	if (_lexer->peek() != TSpace::SEMICOLON)
 	{
 		if (parseName() && parseDotArgs())
 			addPoint();
@@ -60,8 +62,12 @@ bool Field::parseDrPoints()
 	}
 	while(_lexer->peek() != Lexer::Token::SEMICOLON)
 	{
-		if (_lexer->getToken() != Lexer::Token::COMA)
+		t = _lexer->getToken();
+		if (t != TSpace::COMA)
+		{
+			_error_token = new Lexer::Token(t);
 			return false;
+		}
 		if (parseName() && parseDotArgs())
 			addPoint();
 		else
@@ -89,31 +95,58 @@ void Field::addPoint()
 
 bool Field::parseName()
 {
-	return (_lexer->getToken() == Lexer::Token::NAME);
+	Lexer::Token t;
+	t = _lexer->getToken();
+	if (t != TSpace::NAME)
+	{
+		_error_token = new Lexer::Token(t);
+		return false;
+	}
+
+	return true;
+
 }
 bool Field::parseDotArgs()
 {
 	int dot[] = { 10, 6, 7, 6, 9 }; // ( NUM , NUM )
-	for (int i = 0; i < 5; i++)
-		if (_lexer->getToken() != static_cast<Lexer::Token>(dot[i]))
+	Lexer::Token t; 
+	for (int i = 0; i < 5; i++) {
+		t = _lexer->getToken();
+		if (t != static_cast<TSpace>(dot[i]))
+		{
+			_error_token = new Lexer::Token(t);
 			return false;
+		}
+	}
 	return true;
 }
 bool Field::parseDrLines()
 {
-	if (_lexer->peek() != Lexer::Token::SEMICOLON)
+	if (_lexer->peek() != TSpace::SEMICOLON)
 	{
-		if (parseName() && parseLineArgs())
-			addLine();
+		if (parseName())
+		{
+			_buffer = _lexer->nextName();
+			if (parseLineArgs())
+				addLine();
+		}
 		else
 			return false;
 	}
-	while (_lexer->peek() != Lexer::Token::SEMICOLON)
+	while (_lexer->peek() != TSpace::SEMICOLON)
 	{
-		if (_lexer->getToken() != Lexer::Token::COMA)
+		Lexer::Token t = _lexer->getToken();
+		if (t != TSpace::COMA)
+		{
+			_error_token = new Lexer::Token(t);
 			return false;
-		if (parseName() && parseLineArgs())
+		}
+		if (parseName())
+		{
+			_buffer = _lexer->nextName();
+			if(parseLineArgs())
 			addLine();
+		}
 		else
 			return false;
 	}
@@ -124,40 +157,76 @@ bool Field::parseDrLines()
 }
 bool Field::parseLineArgs()
 {
-	Point a;
-	Point b;
-	std::string name;
+	Lexer::Token t;
 
-	if (_lexer->getToken() != Lexer::Token::LEFT_BRACKET)
-		return false;
-	if (_lexer->peek() == Lexer::Token::LEFT_BRACKET)
+	if ((t = _lexer->getToken()) != TSpace::LEFT_BRACKET || !parseLineArg() ||
+		(t = _lexer->getToken()) != TSpace::COMA		 || !parseLineArg() ||
+		(t = _lexer->getToken()) != TSpace::RIGHT_BRACKET)	
 	{
-		if (!parseDotArgs())
-			return false;
+		if (!_error_token)
+			_error_token = new Lexer::Token(t);
+		return false;
 	}
-	else if (_lexer->getToken() != Lexer::Token::NAME)
-		return false;
-	
-	if (_lexer->getToken() != Lexer::Token::COMA)
-		return false;
-
-	if (_lexer->peek() == Lexer::Token::LEFT_BRACKET)
-	{
-		if (!parseDotArgs())
-			return false;
-	}
-	else if (_lexer->getToken() != Lexer::Token::NAME)
-		return false;
-
-	if (_lexer->getToken() != Lexer::Token::RIGHT_BRACKET)
-		return false;
 
 	return true;
 }
 
 void Field::addLine()
 {
+	char name = _buffer;
+	int coords[4];
 
+	int i = 0;
+	while(!_var_args.empty())
+	{
+		coords[i++] = _var_args.front();
+		_var_args.pop();
+	}
+
+	while (i < 4)
+		coords[i++] = _lexer->nextArg();
+
+	_lines.push_back(Line(coords[0], coords[1], coords[2], coords[3], name));
+
+	return;
+
+}
+
+bool Field::parseLineArg()
+{
+	Lexer::Token t;
+
+	if (_lexer->peek() == TSpace::LEFT_BRACKET)
+	{
+		if (!parseDotArgs())
+			return false;
+	}
+	else if ((t = _lexer->getToken()) == TSpace::NAME)
+	{
+		char name = _lexer->nextName();
+		auto it = std::find(_points.begin(), _points.end(), Point(0, 0, name));
+		if (it == _points.end())
+		{
+			*_error_list += "Semantic Error. There is no such point ";
+			*_error_list += std::string(1, name);
+			*_error_list += " in the scope.\n";
+			_var_args.push(0);              // Default point is pushed - (0,0)
+			_var_args.push(0);
+		}
+		else
+		{
+			_var_args.push((*it)._x);
+			_var_args.push((*it)._y);
+		}
+	}
+	else
+	{
+		_error_token = new Lexer::Token(t);
+		return false;
+	}
+
+	return true;
+		
 }
 
 bool Field::parseConnect()
@@ -170,9 +239,15 @@ bool Field::parseMPoints()
 }
 void Field::getNextInstr()
 {
-	Lexer::Token temp = _lexer->getToken();
-	while(temp != Lexer::Token::SEMICOLON && temp != Lexer::Token::NULL_TERM)
+	Lexer::Token temp = *_error_token;
+	delete _error_token;
+	_error_token = nullptr;
+	while (temp != TSpace::SEMICOLON && temp != TSpace::NULL_TERM)
+	{
+		if (temp == TSpace::NAME) _lexer->nextName();
+		if (temp == TSpace::NUM) _lexer->nextArg();
 		temp = _lexer->getToken();
+	}
 	return;
 }
 
@@ -181,4 +256,9 @@ bool Field::hasError() { return *_error_list != ""; }
 std::ostream& operator<<(std::ostream& os, const Field::Point& p)
 {
 	return os << p._name << '(' << p._x << ',' << p._y << ')';
+}
+
+std::ostream& operator<<(std::ostream& os, const Field::Line& l)
+{
+	return os << l._name << "((" << l._x1 << ", " << l._y1 << "), (" << l._x2 << ", " << l._y2 << "))";
 }

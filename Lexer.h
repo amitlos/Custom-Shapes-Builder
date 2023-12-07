@@ -1,7 +1,6 @@
 #pragma once
 #include <iostream>
 #include <queue>
-#include "Field.h"
 
 
 class Lexer
@@ -36,20 +35,19 @@ public:
 	const Token& peek() { return _nextT; }
 	char nextName();
 	unsigned int nextArg();
-	void toArg(const std::vector<Field::Point>&);
 	bool isEmpty() { return _nextT == Token::NULL_TERM; }
-	bool hasError() { return error_message != "" ; }
-	const std::string& getError() { return error_message; }
+	bool hasError() { return _error_message != "" ; }
+	const std::string& getError() { return _error_message; }
 
 private:
 	const char* _input;
 	const char* _cursor;
-	std::queue<char> names;
-	std::deque<unsigned int> args;
+	std::queue<char> _names;
+	std::queue<unsigned int> _args;
 	
 	Token _nextT;
 
-	std::string error_message;
+	std::string _error_message;
 
 	// functions to help
 	Token next();

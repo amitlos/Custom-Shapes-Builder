@@ -12,7 +12,7 @@ Lexer::Token Lexer::next()
 	{
 		Token kw = getKeyWord();
 		if (kw == Token::UNEXPECTED) {
-			error_message = "Lexical error. One of the key word wasn`t recognised correctly. Please, check the rules, and try again.";
+			_error_message = "Lexical error. One of the key word wasn`t recognised correctly. Please, check the rules, and try again.";
 			errorCase();
 		}
 		return kw;
@@ -20,14 +20,14 @@ Lexer::Token Lexer::next()
 	else if (isLetter(*_cursor))
 	{
 		char name = *_cursor;
-		names.push(name);
+		_names.push(name);
 		_cursor++;
 		return Token::NAME;
 	}
 	else if (isDigit(*_cursor))
 	{
 		int arg = getArg();
-		args.push_back(arg);
+		_args.push(arg);
 		return Token::NUM;
 	}
 
@@ -54,17 +54,17 @@ Lexer::Token Lexer::next()
 		return Token::END;
 	default:
 		errorCase();
-		error_message = "Lexical error. Some invalid symbol was found. Please, check the rules, and try again.";
+		_error_message = "Lexical error. Some invalid symbol was found. Please, check the rules, and try again.";
 		return Token::UNEXPECTED;
 	}
 }
 
 char Lexer::nextName()
 {
-	if (!names.empty())
+	if (!_names.empty())
 	{
-		char temp = names.front();
-		names.pop();
+		char temp = _names.front();
+		_names.pop();
 		return temp;
 	}
 	else
@@ -73,10 +73,10 @@ char Lexer::nextName()
  
 unsigned int Lexer::nextArg()
 {
-	if (!args.empty())
+	if (!_args.empty())
 	{
-		int temp = args.front();
-		args.pop_front();
+		int temp = _args.front();
+		_args.pop();
 		return temp;
 	}
 	else
