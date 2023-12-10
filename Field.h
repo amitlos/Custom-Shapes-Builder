@@ -17,13 +17,21 @@ public:
 
 	struct Line 
 	{
-		Line(int x1, int y1, int x2, int y2, char name = 'w', bool is_inf = true) : _x1(x1), _y1(y1), _x2(x2), _y2(y2), _name(name), _is_inf(is_inf) {}
+		Line(int x1, int y1, int x2, int y2, char name = 'w', bool is_inf = true) : _x1(x1), _y1(y1), _x2(x2), _y2(y2), _name(name) {}
 		int _x1;
 		int _y1;
 		int _x2;
 		int _y2;
 		char _name;
-		bool _is_inf;
+	};
+
+	struct Segment
+	{
+		Segment(const Point& p1, const Point& p2) : _p1(p1), _p2(p2) {}
+		const Point& _p1, _p2;
+
+		double getLength();
+		Point getPointOn(unsigned int, unsigned int);
 	};
 
 	Field(const char* input) : _input(input), _lexer(new Lexer(input)), _error_list(new std::string("")), _error_token(nullptr) { parse(); }
@@ -54,6 +62,7 @@ private:
 	bool parseDrLines();
 	bool parseLineArgs();
 	bool parseLineArg();
+	void setRandLineArgs();
 	void addLine();
 	bool parseConnect();
 	bool parseMPoints();

@@ -1,5 +1,8 @@
 // It is the attempt to create a kind of compiler for geometrical obeject;
-
+// Examples of the program code:
+//DRAW_POINTS A, B, C; DRAW_LINES a, b, c;# 
+//  
+//
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include "Field.h"
@@ -8,6 +11,8 @@ int main()
 {
     using namespace sf;
     using namespace std;
+
+    srand((unsigned int)time(NULL));
 
     while (true) {
         string input;

@@ -68,7 +68,7 @@ char Lexer::nextName()
 		return temp;
 	}
 	else
-		throw std::string("Attempt to get a name from empty queue!");
+		throw std::string("Attempt to get a name from empty queue!");            // change it, that is not normal
 }
  
 unsigned int Lexer::nextArg()

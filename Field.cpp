@@ -1,4 +1,5 @@
 #include "Field.h"
+#include <random>
 #define TSpace Lexer::Token            // namespace of the class Token 
 
 void Field::parse()
@@ -55,8 +56,23 @@ bool Field::parseDrPoints()
 	Lexer::Token t;
 	if (_lexer->peek() != TSpace::SEMICOLON)
 	{
-		if (parseName() && parseDotArgs())
-			addPoint();
+		if (parseName())
+		{
+			if (_lexer->peek() == TSpace::COMA || _lexer->peek() == TSpace::SEMICOLON)
+			{
+				unsigned int x = abs(rand() % 1000);
+				unsigned int y = abs(rand() % 1000);
+				_var_args.push(x);
+				_var_args.push(y);
+				addPoint();
+			}
+			else if (parseDotArgs())
+			{
+				addPoint();
+			}
+			else
+				return false;
+		}
 		else
 			return false;
 	}
@@ -68,8 +84,23 @@ bool Field::parseDrPoints()
 			_error_token = new Lexer::Token(t);
 			return false;
 		}
-		if (parseName() && parseDotArgs())
-			addPoint();
+		if (parseName())
+		{
+			if (_lexer->peek() == TSpace::COMA || _lexer->peek() == TSpace::SEMICOLON)
+			{
+				unsigned int x = abs(rand() % 1000);
+				unsigned int y = abs(rand() % 1000);
+				_var_args.push(x);
+				_var_args.push(y);
+				addPoint();
+			}
+			else if (parseDotArgs())
+			{
+				addPoint();
+			}
+			else
+				return false;
+		}
 		else
 			return false;
 	}
@@ -81,8 +112,18 @@ bool Field::parseDrPoints()
 
 void Field::addPoint()
 {
-	int x = _lexer->nextArg();
-	int y = _lexer->nextArg();
+	int x, y;
+	if (_var_args.empty())
+	{
+		x = _lexer->nextArg();
+		y = _lexer->nextArg();
+	}
+	else {
+		x = _var_args.front();
+		_var_args.pop();
+		y = _var_args.front();
+		_var_args.pop();
+	}
 	char name = _lexer->nextName();
 	Point p(x, y, name);
 	if (std::find(_points.begin(), _points.end(), p) == _points.end())
@@ -127,12 +168,20 @@ bool Field::parseDrLines()
 		if (parseName())
 		{
 			_buffer = _lexer->nextName();
-			if (parseLineArgs())
+			if (_lexer->peek() == TSpace::COMA || _lexer->peek() == TSpace::SEMICOLON)
+			{
+				setRandLineArgs();
 				addLine();
+			}
+			else if (parseLineArgs())
+				addLine();
+			else
+				return false;
 		}
 		else
 			return false;
 	}
+
 	while (_lexer->peek() != TSpace::SEMICOLON)
 	{
 		Lexer::Token t = _lexer->getToken();
@@ -144,8 +193,15 @@ bool Field::parseDrLines()
 		if (parseName())
 		{
 			_buffer = _lexer->nextName();
-			if(parseLineArgs())
-			addLine();
+			if (_lexer->peek() == TSpace::COMA || _lexer->peek() == TSpace::SEMICOLON)
+			{
+				setRandLineArgs();
+				addLine();
+			}
+			else if (parseLineArgs())
+				addLine();
+			else
+				return false;
 		}
 		else
 			return false;
@@ -155,6 +211,15 @@ bool Field::parseDrLines()
 
 	return true;
 }
+
+void Field::setRandLineArgs()
+{
+	_var_args.push(abs(rand() % 1000));
+	_var_args.push(abs(rand() % 1000));
+	_var_args.push(abs(rand() % 1000));
+	_var_args.push(abs(rand() % 1000));
+}
+
 bool Field::parseLineArgs()
 {
 	Lexer::Token t;
@@ -208,7 +273,7 @@ bool Field::parseLineArg()
 		if (it == _points.end())
 		{
 			*_error_list += "Semantic Error. There is no such point ";
-			*_error_list += std::string(1, name);
+			*_error_list += std::string(1	, name);
 			*_error_list += " in the scope.\n";
 			_var_args.push(0);              // Default point is pushed - (0,0)
 			_var_args.push(0);
@@ -239,8 +304,8 @@ bool Field::parseMPoints()
 }
 void Field::getNextInstr()
 {
-	Lexer::Token temp = *_error_token;
-	delete _error_token;
+	Lexer::Token temp; if (_error_token) temp = *_error_token; else temp = _lexer->getToken();
+	if (_error_token) delete _error_token;
 	_error_token = nullptr;
 	while (temp != TSpace::SEMICOLON && temp != TSpace::NULL_TERM)
 	{
