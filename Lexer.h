@@ -14,6 +14,10 @@ public:
 		CONNECT,
 		MARK_POINTS,
 		ON,
+		BUILD_RECT,
+		BUILD_TRIANGLE, 
+		BUILD_CIRCLE,
+		BUILD_REGNGON,
 		// symbols that will be used to name dots, lines
 		NAME,
 		// just some integer number

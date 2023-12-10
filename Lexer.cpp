@@ -94,6 +94,10 @@ Lexer::Token Lexer::getKeyWord()
 	std::string KEY3("CONNECT");
 	std::string KEY4("MARK_POINTS");
 	std::string KEY5("ON");
+	std::string KEY6("BUILD_RECT");
+	std::string KEY7("BUILD_TRIANGLE");
+	std::string KEY8("BUILD_CIRCLE");
+	std::string KEY9("BUILD_REGNGON");
 
 
 	switch (*_cursor)
@@ -103,7 +107,11 @@ Lexer::Token Lexer::getKeyWord()
 	case 'O':
 		return checkKW(KEY5) ? Token::ON : Token::UNEXPECTED;
 	case 'D':
-		return checkKW(KEY1) ? Token::DRAW_POINTS : (checkKW(KEY2) ? Token::DRAW_LINES : (checkKW(KEY3) ? Token::CONNECT : Token::UNEXPECTED));
+		return checkKW(KEY1) ? Token::DRAW_POINTS : (checkKW(KEY2) ? Token::DRAW_LINES : Token::UNEXPECTED);
+	case 'C':
+		return checkKW(KEY3) ? Token::CONNECT : Token::UNEXPECTED;
+	case 'B':
+		return checkKW(KEY6) ? Token::BUILD_RECT : (checkKW(KEY7) ? Token::BUILD_TRIANGLE : (checkKW(KEY8) ? Token::BUILD_CIRCLE : (checkKW(KEY9) ? Token::BUILD_REGNGON : Token::UNEXPECTED)));
 	default:
 		return Token::UNEXPECTED;
 	}	
