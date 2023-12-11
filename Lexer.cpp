@@ -12,8 +12,10 @@ Lexer::Token Lexer::next()
 	{
 		Token kw = getKeyWord();
 		if (kw == Token::UNEXPECTED) {
-			_error_message = "Lexical error. One of the key word wasn`t recognised correctly. Please, check the rules, and try again.";
-			errorCase();
+			//_error_message = "Lexical error. One of the key word wasn`t recognised correctly. Please, check the rules, and try again.";
+			_names.push(*_cursor);
+			_cursor++;
+			return Token::NAME;
 		}
 		return kw;
 	}
@@ -165,6 +167,7 @@ void Lexer::errorCase()
 std::ostream& operator<<(std::ostream& os, const Lexer::Token& kind) {
 	static const char* const names[]{
 			"DRAW_POINTS",      "DRAW_LINES",  "CONNECT",  "MARK_POINTS", "ON",
+			"BUILD_RECT", "BUILD_TRIANGLE", "BUILD_CIRCLE", "BUILD_REGNGON",
 			"NAME",   "NUM", "COMA",   "SEMICOLON",
 			"RIGHT_BRACKET",       "LEFT_BRACKET",        "TWODOTS",      "END",   "UNEXPECTED",
 			"NULL_TERM",

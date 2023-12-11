@@ -1,7 +1,8 @@
 // It is the attempt to create a kind of compiler for geometrical obeject;
 // Examples of the program code:
 //DRAW_POINTS A, B, C; DRAW_LINES a, b, c;# 
-//  
+//DRAW_POINTS A, B, C; DRAW_LINES a(A, C), b, c;CONNECT A,B; CONNECT B,C; MARK_POINTS K(1,1) ON AB; MARK_POINTS L(3,1) ON AB; MARK_POINTS P(1,2) ON BC;# 
+// 
 //
 #include <iostream>
 #include <SFML/Graphics.hpp>
@@ -9,18 +10,17 @@
 
 int main()
 {
-    using namespace sf;
-    using namespace std;
+    using namespace sf; // for graphics
+    using namespace std; // for cout, cin
 
-    srand((unsigned int)time(NULL));
-
-    while (true) {
-        string input;
+    srand((unsigned int)time(NULL)); // for random numbers
+    
+        string input; // input string
 
         cout << "Welcome! It is a program to construct geometrical objects. See the rules which define how to write the program to construct something.\n ";
         cout << "Rules:\n";
         // TODO: write rules.
-
+        // TODO: write examples.
 
         cout << "Enter your program: \n";
         getline(cin, input);
@@ -35,6 +35,7 @@ int main()
 
         const std::vector<Field::Point>& points = field.getPoints();
         const std::vector<Field::Line>& lines = field.getLines();
+        const std::vector<Field::Segment>& segments = field.getSegments();
 
         cout << "Result:\n";
 
@@ -43,7 +44,13 @@ int main()
 
         for (Field::Line l : lines)
             cout << l << endl;
-    }
+
+        for (Field::Segment s : segments)
+            cout << s << endl;
+
+        field.drawAll();
+
+    
 
     
     // Lexer tester
