@@ -22,25 +22,17 @@ void Field::drawAll()
 
 		window.clear(sf::Color::White);
 
-		// Drawing points
-
+		// Drawing points	
 		for (Point p : _points)
 			drawPoint(window, p);
 
+		// Drawing lines
 		for (Line l : _lines)
 			drawLine(window, l);
 
+		// Drawing segments
 		for(Segment s : _segments)
 			drawSegment(window, s);
-
-
-		sf::VertexArray lines(sf::LinesStrip, 2);
-		lines[0].position = sf::Vector2f(10, 10);
-		lines[0].color = sf::Color::Red;
-		lines[1].position = sf::Vector2f(20, 20);
-		lines[1].color = sf::Color::Red;
-
-		window.draw(lines);
 
 		window.display();
 	}
@@ -72,7 +64,9 @@ void Field::drawPoint(sf::RenderWindow& window, const Field::Point& p)
 
 void Field::drawLine(sf::RenderWindow& window, const Field::Line& line)
 {
-
+	// It can be done in a better way, but I don`t know how to do it.
+	// The idea is: we have two points, and we need to draw a line between them. To do this, 
+	// we calculate the coordinates of the points where the line crosses the borders of the window, and connect them.
 	unsigned int x1, x2, y1, y2;
 	double koef = line.getCoef();
 	double b = line.getb();
@@ -330,11 +324,11 @@ bool Field::parseName()
 
 bool Field::parseDotArgs()
 {
-	int dot[] = { 14, 10, 11, 10, 13 }; // ( NUM , NUM )
+	Lexer::Token dot[] = { TSpace::LEFT_BRACKET, TSpace::NUM, TSpace::COMA, TSpace::NUM, TSpace::RIGHT_BRACKET}; // ( x , y )
 	Lexer::Token t; 
 	for (int i = 0; i < 5; i++) {
 		t = _lexer->getToken();
-		if (t != static_cast<TSpace>(dot[i]))
+		if (t != dot[i])
 		{
 			_error_token = new Lexer::Token(t);
 			return false;
@@ -480,7 +474,7 @@ bool Field::parseMPoints()
 		return false;
 	}
 
-	if (!parseSegment())
+	if(!parseSegment())
 		return false;
 
 	t = _lexer->getToken();
@@ -497,7 +491,16 @@ bool Field::parseMPoints()
 
 bool Field::parseSegment()
 {
-	return (parseName() && parseName());
+	TSpace t; 
+	t = _lexer->getToken();
+	if (t != TSpace::SEGNAME)
+	{
+		_error_token = new Lexer::Token(t);
+		return false;
+	}
+	_cstr_names.push(_lexer->nextName());
+	_cstr_names.push(_lexer->nextName());
+	return true;
 }
 
 bool Field::parseBRect()

@@ -8,14 +8,18 @@ Lexer::Token Lexer::next()
 	{
 		return Token::NULL_TERM;	
 	}
+
 	if (isLetter(*_cursor) && isLetter(*(_cursor + 1)))
 	{
 		Token kw = getKeyWord();
 		if (kw == Token::UNEXPECTED) {
 			//_error_message = "Lexical error. One of the key word wasn`t recognised correctly. Please, check the rules, and try again.";
-			_names.push(*_cursor);
-			_cursor++;
-			return Token::NAME;
+			kw = getObjName();
+			if (kw == Token::UNEXPECTED)
+			{
+				_error_message += "Lexical error. Particular word wasn`t recognised neither as keyword nor as object name. Please, check the rules, and try again.\n";
+				errorCase();
+			}
 		}
 		return kw;
 	}
@@ -56,7 +60,7 @@ Lexer::Token Lexer::next()
 		return Token::END;
 	default:
 		errorCase();
-		_error_message = "Lexical error. Some invalid symbol was found. Please, check the rules, and try again.";
+		_error_message += "Lexical error. Some invalid symbol was found. Please, check the rules, and try again.\n";
 		return Token::UNEXPECTED;
 	}
 }
@@ -132,6 +136,45 @@ int Lexer::getArg()
 
 	return res;
 }
+
+Lexer::Token Lexer::getObjName()
+{
+	const char* temp = _cursor;
+
+	while (isLetter(*temp)) temp++;
+	int len = temp - _cursor;
+
+	switch (len)
+	{
+	case 2:
+		for (int i = 0; i < len; i++)
+		{
+			_names.push(*_cursor);
+			_cursor++;
+		}
+		return Token::SEGNAME;
+		break;
+	case 3:
+		for (int i = 0; i < len; i++)
+		{
+			_names.push(*_cursor);
+			_cursor++;
+		}
+		return Token::TRINAME;
+		break;
+	case 4:
+		for (int i = 0; i < len; i++)
+		{
+			_names.push(*_cursor);
+			_cursor++;
+		}
+		return Token::RECTNAME;
+		break;
+	default:
+		return Token::UNEXPECTED;
+	}
+}
+
 bool Lexer::isDigit(char elem)
 {
 	return (elem >= '0') && (elem <= '9');
@@ -168,7 +211,7 @@ std::ostream& operator<<(std::ostream& os, const Lexer::Token& kind) {
 	static const char* const names[]{
 			"DRAW_POINTS",      "DRAW_LINES",  "CONNECT",  "MARK_POINTS", "ON",
 			"BUILD_RECT", "BUILD_TRIANGLE", "BUILD_CIRCLE", "BUILD_REGNGON",
-			"NAME",   "NUM", "COMA",   "SEMICOLON",
+			"NAME", "SEGNAME", "RECTNAME", "TRINAME",  "NUM", "COMA",   "SEMICOLON",
 			"RIGHT_BRACKET",       "LEFT_BRACKET",        "TWODOTS",      "END",   "UNEXPECTED",
 			"NULL_TERM",
 	};

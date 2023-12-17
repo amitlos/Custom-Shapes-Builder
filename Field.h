@@ -15,11 +15,14 @@
 #include "Lexer.h"
 #include <SFML/Graphics.hpp>
 
+//#define NDEBUG
+
 class Field
 {
 public:
-	//after debug, make these structures private!
-	// structure to store points
+#ifdef NDEBUG
+private:
+#endif // !NDEBUG
 	struct Point
 	{
 		Point(unsigned int x = 0, unsigned int y = 0, char name = 'W') : _x(x), _y(y), _name(name) {}
@@ -30,7 +33,7 @@ public:
 	};
 
 	// structure to store lines
-	struct Line 
+	struct Line
 	{
 		double getCoef() const { return (double)(_y2 - _y1) / (_x2 - _x1); };
 		double getb() const { return (double)_y1 - getCoef() * _x1; };
@@ -55,12 +58,12 @@ public:
 
 		inline bool operator== (const Segment& s) const { return (_p1 == s._p1 && _p2 == s._p2) || (_p1 == s._p2 && _p2 == s._p1); }
 
-		// function to get the length of the segment
-		double getLength() const;
-
 		// function to get the coordinates of the point on the segment using the proportion
-		Point getPointOn(char, unsigned int, unsigned int) const;	
+		Point getPointOn(char, unsigned int, unsigned int) const;
 	};
+
+
+public:
 
 	// constructs a field using the input string
 	Field(const char* input) : _input(input), _lexer(new Lexer(input)), _error_list(new std::string("")), _error_token(nullptr) { parse(); }
@@ -78,6 +81,7 @@ public:
 	// function to draw all the objects
 	void drawAll();
 
+#ifndef NDEBUG	
 	// function to get the points
 	inline const std::vector<Point>& getPoints() { return _points; }
 
@@ -86,6 +90,7 @@ public:
 
 	// function to get the segments
 	inline const std::vector<Segment>& getSegments() { return _segments; }
+#endif
 
 private:
 	// Data
@@ -150,6 +155,8 @@ private:
 	void addCircle();
 	void addReg();
 
+
+	// drawing functions
 	void drawPoint(sf::RenderWindow& window, const Point& p);
 	void drawLine(sf::RenderWindow& window, const Line& line);
 	void drawSegment(sf::RenderWindow& window, const Segment& s);
@@ -163,10 +170,13 @@ private:
 	// function that takes a name from the _cstr_names, finds the point with this name in the _points, 
 	// and puts its coordinates to _cstr_nums 
 	void getCoords(); 
-		
+	
 };
 
+#ifndef NDEBUG
 // operators to print the objects
 std::ostream& operator<<(std::ostream&, const Field::Point&);
 std::ostream& operator<<(std::ostream&, const Field::Line&);
 std::ostream& operator<<(std::ostream&, const Field::Segment&);
+#endif
+	
