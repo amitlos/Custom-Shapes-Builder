@@ -165,84 +165,55 @@ void Field::parse()
 	// After that, we work as usual. 
 	// If there isn`t an ending symbol, it stops on \0' terminal, we see this and tell user, 
 	// that there is a syntax error - there is no end of the instruction. '
-	bool notEnded = true;
-	while (notEnded)
+	bool isParsed = true;
+	while (true)
 	{
 		Lexer::Token t = _lexer->getToken();
 		switch (t)
 		{
 		case TSpace::DRAW_POINTS:
-			if (!parseDrPoints())
-			{
-				getNextInstr();
-				clearArgs();
-			}
+			isParsed = parseDrPoints();
 			break;
 		case TSpace::DRAW_LINES:
-			if (!parseDrLines())
-			{
-				getNextInstr();
-				clearArgs();
-			}
+			isParsed = parseDrLines();
 			break;
 		case TSpace::CONNECT:
-			if (!parseConnect())
-			{
-				getNextInstr();
-				clearArgs();
-			}
+			isParsed = parseConnect();
 			break;
 		case TSpace::MARK_POINTS:
-			if (!parseMPoints())
-			{
-				getNextInstr();
-				clearArgs();
-			}
+			isParsed = parseMPoints();
 			break;
 		case TSpace::BUILD_RECT:
-			if (!parseBRect())
-			{
-				getNextInstr();
-				clearArgs();
-			}
+			isParsed = parseBRect();
 			break;
 		case TSpace::BUILD_TRIANGLE:
-			if (!parseBTriangle())
-			{
-				getNextInstr();
-				clearArgs();
-			}
+			isParsed = parseBTriangle();
 			break;
 		case TSpace::BUILD_CIRCLE:
-			if (!parseBCircle())
-			{
-				getNextInstr();
-				clearArgs();
-			}
+			isParsed = parseBCircle();
 			break;
 		case TSpace::BUILD_REGNGON:
-			if (!parseBReg())
-			{
-				getNextInstr();
-				clearArgs();
-			}
+			isParsed = parseBReg();
 			break;
 		case TSpace::END:
-			notEnded = false;
-			break;
+			return;
 		case TSpace::UNEXPECTED:
 			*_error_list += "Syntax error. Command is not found.\n";
 			_error_token = new Lexer::Token(t);
-			getNextInstr();
+			isParsed = false;
 			break;
 		case TSpace::NULL_TERM:
 			*_error_list += "Syntax Error. End of the instructions wasn`t found. Please, check the rules and try again.\n";
-			notEnded = false;
-			break;
+			return;
 		default:
 			*_error_list += "Syntax Error. Failed to read an instruction. Please, check the rules and try again.\n";
 			_error_token = new Lexer::Token(t);
+			isParsed = false;
+		}
+		if (!isParsed)
+		{
 			getNextInstr();
+			clearArgs();
 		}
 	}
 }
