@@ -87,21 +87,21 @@ void Field::drawLine(sf::RenderWindow& window, const Field::Line& line)
 	unsigned int x1, x2, y1, y2;
 	double koef = line.getCoef();
 	double b = line.getb();
+
 	if (koef == 0)
 	{
 		x1 = 0;
 		x2 = WINDOW_WIDTH;
 		y1 = y2 = (unsigned int)b;
 	}
-	
-	if (koef == INFINITY)
+	else if (koef == INFINITY)
 	{
 		y1 = 0;
 		y2 = WINDOW_HEIGHT;
 		x1 = x2 = line._x1;        
 	}
-
-	if (koef > 0) {
+	else if (koef > 0) 
+	{
 		if (b >= 0)
 		{
 			x1 = 0;
