@@ -27,8 +27,8 @@ private:
 	{
 		Point(unsigned int x = 0, unsigned int y = 0, char name = 'W') : _x(x), _y(y), _name(name) {}
 		inline bool operator== (const Point& p) const { return _name == p._name; }
-		unsigned int _x;
-		unsigned int _y;
+		int _x;
+		int _y;
 		char _name;
 	};
 
@@ -53,6 +53,9 @@ private:
 		// fields to store the points of the segment
 		Point _p1, _p2;
 
+		//Default constructor
+		Segment() {}
+
 		// constructs a segment using two points
 		Segment(const Point& p1, const Point& p2) : _p1(p1), _p2(p2) {}
 
@@ -60,6 +63,15 @@ private:
 
 		// function to get the coordinates of the point on the segment using the proportion
 		Point getPointOn(char, unsigned int, unsigned int) const;
+	};
+
+	struct Triangle
+	{
+		Field::Point _a, _b, _c;
+
+		Triangle();
+
+		Triangle(int x, int y, double l1, double l2, double angle, const char* names);
 	};
 
 
@@ -98,6 +110,7 @@ private:
 	std::vector<Point> _points;                   // vector to store points
 	std::vector<Line> _lines;                     // vector to store lines
 	std::vector<Segment> _segments;               // vector to store segments
+	std::vector<Triangle> _triangles;
 
 	// Lexer
 	Lexer* _lexer;                                // lexer to get a token stream based on the input string
@@ -131,13 +144,16 @@ private:
 
 	// parsing MARK_POINTS instruction
 	bool parseMPoints();
-	bool parseSegment();
+	bool parseSegName();
 
 	// parsing BUILD_RECT instruction
 	bool parseBRect();
 
 	// parsing BUILD_TRIANGLE instruction
 	bool parseBTriangle();
+	bool parseTriName();
+	bool parseTriArgs();
+	void setDefTriArgs();
 
 	// parsing BUILD_CIRCLE instruction
 	bool parseBCircle();
@@ -160,6 +176,7 @@ private:
 	void drawPoint(sf::RenderWindow& window, const Point& p);
 	void drawLine(sf::RenderWindow& window, const Line& line);
 	void drawSegment(sf::RenderWindow& window, const Segment& s);
+	void drawTriangle(sf::RenderWindow& window, const Field::Triangle& t);
 
 	// function to get next instruction after getting syntax error
 	void getNextInstr();
@@ -170,6 +187,8 @@ private:
 	// function that takes a name from the _cstr_names, finds the point with this name in the _points, 
 	// and puts its coordinates to _cstr_nums 
 	void getCoords(); 
+
+	void setRandomPosition();
 	
 };
 

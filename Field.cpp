@@ -1,17 +1,29 @@
 #include "Field.h"
 #include <SFML/Graphics.hpp>
 #include <random>
-#define TSpace Lexer::Token            // namespace of the class Token 
+#define TSpace Lexer::Token            // namespace of the values of Token enumeration 
+
+// Constants
+#define pixpercm 38
+#define PI 3.14159
+#define WINDOW_WIDTH 1000
+#define WINDOW_HEIGHT 1000
+
+// Default values for triangle 
+#define dl1 3          // length of the first side 
+#define dl2 5		   // length of the second side 
+#define dangle 45      // angle between sides 
+
 
 void Field::drawAll()
 {
-	sf::RenderWindow window(sf::VideoMode(1000, 1000), "Geometrical Interpreter");
+	sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Geometrical Interpreter");
 
 	while (window.isOpen())
 	{
 
 
-		// check all the window's events that were triggered since the last iteration of the loop
+		// Check all the window's events that were triggered since the last iteration of the loop
 		sf::Event event;
 		while (window.pollEvent(event))
 		{
@@ -23,16 +35,20 @@ void Field::drawAll()
 		window.clear(sf::Color::White);
 
 		// Drawing points	
-		for (Point p : _points)
+		for (Point& p : _points)
 			drawPoint(window, p);
 
 		// Drawing lines
-		for (Line l : _lines)
+		for (Line& l : _lines)
 			drawLine(window, l);
 
 		// Drawing segments
-		for(Segment s : _segments)
+		for(Segment& s : _segments)
 			drawSegment(window, s);
+
+		// Drawing triangles
+		for (Triangle t : _triangles)
+			drawTriangle(window, t);
 
 		window.display();
 	}
@@ -47,8 +63,9 @@ void Field::drawPoint(sf::RenderWindow& window, const Field::Point& p)
 	window.draw(circle);
 
 	sf::Font font;
-	if (!font.loadFromFile("arial.ttf"))
+	if (!font.loadFromFile("./resources/arial.ttf"))
 	{
+		return;
 		// error...
 	}
 	sf::Text text;
@@ -62,9 +79,9 @@ void Field::drawPoint(sf::RenderWindow& window, const Field::Point& p)
 	return;
 }
 
+// draws the line defined using two points in window with size WINDOW_WIDTH x WINDOW_HEIGHT
 void Field::drawLine(sf::RenderWindow& window, const Field::Line& line)
 {
-	// It can be done in a better way, but I don`t know how to do it.
 	// The idea is: we have two points, and we need to draw a line between them. To do this, 
 	// we calculate the coordinates of the points where the line crosses the borders of the window, and connect them.
 	unsigned int x1, x2, y1, y2;
@@ -73,14 +90,15 @@ void Field::drawLine(sf::RenderWindow& window, const Field::Line& line)
 	if (koef == 0)
 	{
 		x1 = 0;
-		x2 = 1000;
+		x2 = WINDOW_WIDTH;
 		y1 = y2 = (unsigned int)b;
 	}
-	else if (koef == INFINITY)
+	
+	if (koef == INFINITY)
 	{
 		y1 = 0;
-		y2 = 1000;
-		x1 = x2 = (unsigned int)b;
+		y2 = WINDOW_HEIGHT;
+		x1 = x2 = line._x1;        
 	}
 
 	if (koef > 0) {
@@ -95,40 +113,39 @@ void Field::drawLine(sf::RenderWindow& window, const Field::Line& line)
 			x1 = (unsigned int)(-b / koef);
 		}
 
-		if (koef * 1000 + b < 1000)
+		if (koef * WINDOW_WIDTH + b < WINDOW_HEIGHT)
 		{
-			x2 = 1000;
-			y2 = (unsigned int)(koef * 1000 + b);
+			x2 = WINDOW_WIDTH;
+			y2 = (unsigned int)(koef * x2 + b);
 		}
 		else
 		{
-			y2 = 1000;
-			x2 = (unsigned int)((1000 - b) / koef);
+			y2 = WINDOW_HEIGHT;
+			x2 = (unsigned int)((y2 - b) / koef);
 		}
 	}
 	else if (koef < 0)
 	{
-		if ((unsigned int)(-b / koef) < 1000)
+		if ((unsigned int)(-b / koef) < WINDOW_WIDTH)
 		{
 			y1 = 0;
 			x1 = (unsigned int)(-b / koef);
 		}
 		else {
-			x1 = 1000;
-			y1 = (unsigned int)(koef * 1000 + b);
+			x1 = WINDOW_WIDTH;
+			y1 = (unsigned int)(koef * x1 + b);
 		}
 
-		if (b < 1000)
+		if (b < WINDOW_HEIGHT)
 		{
-					x2 = 0;
+			x2 = 0;
 			y2 = (unsigned int)b;
 		}
 		else
 		{
-			y2 = 1000;
-			x2 = (unsigned int)((1000 - b) / koef);
+			y2 = WINDOW_HEIGHT;
+			x2 = (unsigned int)((y2 - b) / koef);
 		}
-
 	}
 
 
@@ -156,6 +173,20 @@ void Field::drawSegment(sf::RenderWindow& window, const Field::Segment& s)
 
 	return;
 
+}
+
+void Field::drawTriangle(sf::RenderWindow& window, const Field::Triangle& t)
+{
+	
+	drawSegment(window, Segment(t._a, t._b));
+	drawSegment(window, Segment(t._a, t._c));
+	drawSegment(window, Segment(t._c, t._b));
+
+	drawPoint(window, t._a);
+	drawPoint(window, t._b);
+	drawPoint(window, t._c);
+
+	return;
 }
 
 void Field::parse()
@@ -360,10 +391,26 @@ bool Field::parseDrLines()
 
 void Field::setRandLineArgs()
 {
+	setRandomPosition();
 	_cstr_nums.push(abs(rand() % 1000));
 	_cstr_nums.push(abs(rand() % 1000));
-	_cstr_nums.push(abs(rand() % 1000));
-	_cstr_nums.push(abs(rand() % 1000));
+
+	return;
+}
+
+void Field::setRandomPosition()
+{
+	_cstr_nums.push(abs(rand() % 800) + 100);                   
+	_cstr_nums.push(abs(rand() % 800) + 100);
+}
+
+void Field::setDefTriArgs()
+{
+
+	setRandomPosition();
+	_cstr_nums.push(dangle);						               
+	_cstr_nums.push(dl1);                   
+	_cstr_nums.push(dl2);
 
 	return;
 }
@@ -445,7 +492,7 @@ bool Field::parseMPoints()
 		return false;
 	}
 
-	if(!parseSegment())
+	if(!parseSegName())
 		return false;
 
 	t = _lexer->getToken();
@@ -460,7 +507,7 @@ bool Field::parseMPoints()
 	return true;
 }
 
-bool Field::parseSegment()
+bool Field::parseSegName()
 {
 	TSpace t; 
 	t = _lexer->getToken();
@@ -479,8 +526,68 @@ bool Field::parseBRect()
 	return true;
 }
 
+
+bool Field::parseTriName()
+{
+	TSpace t;
+	t = _lexer->getToken();
+	if (t != TSpace::TRINAME)
+	{
+		_error_token = new Lexer::Token(t);
+		return false;
+	}
+	_cstr_names.push(_lexer->nextName());
+	_cstr_names.push(_lexer->nextName());
+	_cstr_names.push(_lexer->nextName());
+	return true;
+}
+
 bool Field::parseBTriangle()
 {
+	Lexer::Token t;
+
+	if (!parseTriName())
+		return false;
+
+	if (_lexer->peek() == TSpace::SEMICOLON)
+	{
+		setDefTriArgs();
+	}
+	else if (!parseTriArgs())
+		return false;
+
+	t = _lexer->getToken();
+	if (t != TSpace::SEMICOLON)
+	{
+		_error_token = new Lexer::Token(t);
+		return false;
+	}
+
+	addTriangle();
+
+	return true;
+}
+
+bool Field::parseTriArgs()
+{
+
+	setRandomPosition();	
+
+	Lexer::Token tri_parameters[] = { TSpace::LEFT_BRACKET, TSpace::NUM, TSpace::COMA, TSpace::NUM, TSpace::COMA, TSpace::NUM, TSpace::RIGHT_BRACKET };
+
+	Lexer::Token t;
+	for (int i = 0; i < 7; i++)
+	{
+		t = _lexer->getToken();
+		if (t != tri_parameters[i])
+		{
+			_error_token = new Lexer::Token(t);
+			return false;
+		}
+		if (t == TSpace::NUM)
+			_cstr_nums.push(_lexer->nextArg());
+	}
+
 	return true;
 }
 
@@ -598,7 +705,33 @@ void Field::addRect()
 
 void Field::addTriangle()
 {
+	//taking names
+	char names[3];
 
+	for (int i = 0; i < 3; i++)
+	{
+		names[i] = _cstr_names.front();
+		_cstr_names.pop();
+	}
+
+	// taking position
+	unsigned int x = _cstr_nums.front();
+	_cstr_nums.pop();
+	unsigned int y = _cstr_nums.front();
+	_cstr_nums.pop();
+
+	//taking and converting values to correct units (length from cm to pixels, angle from degrees to radians)
+	double radians = (_cstr_nums.front() / 180.0) * PI;
+	_cstr_nums.pop();
+
+	unsigned int l1 = _cstr_nums.front() * pixpercm;
+	_cstr_nums.pop();
+	unsigned int l2 = _cstr_nums.front() * pixpercm;
+	_cstr_nums.pop();
+
+	_triangles.push_back(Triangle(x, y, l1, l2, radians, names));
+
+	return;
 }
 
 void Field::addCircle()
@@ -647,8 +780,27 @@ void Field::getNextInstr()
 	_error_token = nullptr;
 	while (temp != TSpace::SEMICOLON && temp != TSpace::NULL_TERM)
 	{
-		if (temp == TSpace::NAME) _lexer->nextName();
-		if (temp == TSpace::NUM) _lexer->nextArg();
+		switch (temp)
+		{
+		case TSpace::NAME:
+			_lexer->nextName();
+			break;
+		case TSpace::NUM:
+			_lexer->nextArg();
+			break;
+		case TSpace::SEGNAME:
+			_lexer->nextName();
+			_lexer->nextName();
+			break;
+		case TSpace::TRINAME:
+			for (int i = 0; i < 3; i++)
+				_lexer->nextName();
+			break;
+		case TSpace::RECTNAME:
+			for(int i = 0; i < 4; i++)
+				_lexer->nextName();
+		} 
+		
 		temp = _lexer->getToken();
 	}
 	return;

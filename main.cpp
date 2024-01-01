@@ -1,8 +1,9 @@
 // It is the attempt to create a kind of compiler for geometrical obeject;
 // Examples of the program code:
 //DRAW_POINTS A, B, C; DRAW_LINES a, b, c;# 
-//DRAW_POINTS A, B, C; DRAW_LINES a(A, C), b, c, d, u, o ,l, k;CONNECT A,B; CONNECT B,C; MARK_POINTS K(1,1) ON AB; MARK_POINTS L(3,1) ON AB; MARK_POINTS P(1,2) ON BC;# 
-// dvd
+//DRAW_POINTS A, B, C; DRAW_LINES a(A, C), b, c, d, u, o ,l, k;CONNECT A,B; CONNECT B,C; MARK_POINTS K(1,1) ON AB; MARK_POINTS L(3,1) ON AB; #
+// BUILD_TRIANGLE PKL;  BUILD_TRIANGLE PKL; BUILD_TRIANGLE CAB(90, 4, 3); BUILD_TRIANGLE JHG(120,10, 3 ); BUILD_TRIANGLE ZXC(60, 5, 5); BUILD_TRIANGLE NMK(30, 10, 17 );# 
+// 
 //
 #include <iostream>
 #include <SFML/Graphics.hpp>
@@ -40,13 +41,13 @@ int main()
 
         cout << "Result:\n";
 
-        for (Field::Point p : points)
+        for (const Field::Point& p : points)
             cout << p << endl;
 
-        for (Field::Line l : lines)
+        for (const Field::Line& l : lines)
             cout << l << endl;
 
-        for (Field::Segment s : segments)
+        for (const Field::Segment& s : segments)
             cout << s << endl;
 #endif // !NDEBUG
 
