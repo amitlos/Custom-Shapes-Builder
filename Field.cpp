@@ -57,9 +57,9 @@ void Field::drawAll()
 
 void Field::drawPoint(sf::RenderWindow& window, const Field::Point& p)
 {
-	sf::CircleShape circle(5.0f);
+	sf::CircleShape circle(6.0f);
 	circle.setFillColor(sf::Color::Black);
-	circle.setPosition(p._x, p._y);
+	circle.setPosition(p._x - 3.0f, p._y - 3.0f);
 	window.draw(circle);
 
 	sf::Font font;
