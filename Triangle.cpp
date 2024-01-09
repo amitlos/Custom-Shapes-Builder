@@ -1,10 +1,11 @@
-#include "Field.h"
+#include "Triangle.h"
+#include <cmath>
 
 // Default constructor
-Field::Triangle::Triangle() {}
+Triangle::Triangle() {}
 
 // Constructor that takes all neccesary arguments to create a triangle in the field
-Field::Triangle::Triangle(int x, int y, double l1, double l2, double angle, const char* names)
+Triangle::Triangle(int x, int y, double l1, double l2, double angle, const char* names)
 {
 	_a._x = x;
 	_a._y = y;
@@ -15,4 +16,9 @@ Field::Triangle::Triangle(int x, int y, double l1, double l2, double angle, cons
 	_c._x = _a._x + l2;
 	_c._y = _a._y;
 	_c._name = names[2];
+}
+
+std::ostream& operator<<(std::ostream& os, const Triangle& tr)
+{
+	return os << tr._a._name << tr._b._name << tr._c._name << '(' << tr._a << ',' << tr._b << ',' << tr._c << ')';
 }

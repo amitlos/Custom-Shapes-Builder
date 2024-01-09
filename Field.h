@@ -13,6 +13,10 @@
 #include <iostream>
 #include <vector>
 #include "Lexer.h"
+#include "Point.h"
+#include "Line.h"
+#include "Segment.h"
+#include "Triangle.h"
 #include <SFML/Graphics.hpp>
 
 //#define NDEBUG
@@ -20,65 +24,11 @@
 class Field
 {
 public:
-#ifdef NDEBUG
-private:
-#endif // !NDEBUG
-	struct Point
-	{
-		Point(unsigned int x = 0, unsigned int y = 0, char name = 'W') : _x(x), _y(y), _name(name) {}
-		inline bool operator== (const Point& p) const { return _name == p._name; }
-		int _x;
-		int _y;
-		char _name;
-	};
-
-	// structure to store lines
-	struct Line
-	{
-		double getCoef() const { return (double)(_y2 - _y1) / (_x2 - _x1); };
-		double getb() const { return (double)_y1 - getCoef() * _x1; };
-
-		Line(int x1, int y1, int x2, int y2, char name = 'w', bool is_inf = true) : _x1(x1), _y1(y1), _x2(x2), _y2(y2), _name(name) {}
-		int _x1;
-		int _y1;
-		int _x2;
-		int _y2;
-		char _name;
-
-	};
-
-	// structure to store segments
-	struct Segment
-	{
-		// fields to store the points of the segment
-		Point _p1, _p2;
-
-		//Default constructor
-		Segment() {}
-
-		// constructs a segment using two points
-		Segment(const Point& p1, const Point& p2) : _p1(p1), _p2(p2) {}
-
-		inline bool operator== (const Segment& s) const { return (_p1 == s._p1 && _p2 == s._p2) || (_p1 == s._p2 && _p2 == s._p1); }
-
-		// function to get the coordinates of the point on the segment using the proportion
-		Point getPointOn(char, unsigned int, unsigned int) const;
-	};
-
-	struct Triangle
-	{
-		Field::Point _a, _b, _c;
-
-		Triangle();
-
-		Triangle(int x, int y, double l1, double l2, double angle, const char* names);
-	};
-
-
-public:
 
 	// constructs a field using the input string
 	Field(const char* input) : _input(input), _lexer(new Lexer(input)), _error_list(new std::string("")), _error_token(nullptr) { parse(); }
+
+	//Destructor
 	~Field() { delete _error_list; delete _lexer; }
 
 	// function to check whether there is an error
@@ -90,10 +40,6 @@ public:
 	// function to get the list of the syntax errors
 	const std::string& getSyntErrors() { return *_error_list; }
 
-	// function to draw all the objects
-	void drawAll();
-
-#ifndef NDEBUG	
 	// function to get the points
 	inline const std::vector<Point>& getPoints() { return _points; }
 
@@ -102,7 +48,9 @@ public:
 
 	// function to get the segments
 	inline const std::vector<Segment>& getSegments() { return _segments; }
-#endif
+
+	// function to get the triangles
+	inline const std::vector<Triangle>& getTriangles() { return _triangles; }
 
 private:
 	// Data
@@ -171,13 +119,6 @@ private:
 	void addCircle();
 	void addReg();
 
-
-	// drawing functions
-	void drawPoint(sf::RenderWindow& window, const Point& p);
-	void drawLine(sf::RenderWindow& window, const Line& line);
-	void drawSegment(sf::RenderWindow& window, const Segment& s);
-	void drawTriangle(sf::RenderWindow& window, const Field::Triangle& t);
-
 	// function to get next instruction after getting syntax error
 	void getNextInstr();
 
@@ -192,10 +133,4 @@ private:
 	
 };
 
-#ifndef NDEBUG
-// operators to print the objects
-std::ostream& operator<<(std::ostream&, const Field::Point&);
-std::ostream& operator<<(std::ostream&, const Field::Line&);
-std::ostream& operator<<(std::ostream&, const Field::Segment&);
-#endif
 	
